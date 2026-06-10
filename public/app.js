@@ -852,6 +852,7 @@ function offlineDeal() {
   show("offline-reveal");
 }
 
+let offRevealLockUntil = 0;
 function offlineShowPass() {
   const r = off.roles[off.index];
   setText($("off-pass-name"), `Pass to ${r.name}`);
@@ -877,10 +878,15 @@ function offlineReveal() {
     setText($("off-reveal-sub"), "");
   }
   $("off-overlay").hidden = false;
+  // The reveal button and the overlay's "Got it" button overlap on screen, so a
+  // tap's synthesized ghost-click (~300ms later) would land on "Got it" and
+  // instantly dismiss the word. Ignore dismissals for a moment after opening.
+  offRevealLockUntil = Date.now() + 500;
   Sound.reveal();
   typeWord(wordEl, display);
 }
 function offlineNext() {
+  if (Date.now() < offRevealLockUntil) return; // swallow ghost-click dismiss
   off.index++;
   if (off.index >= off.roles.length) {
     offlineShowAnswerScreen();
