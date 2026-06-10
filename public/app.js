@@ -1096,6 +1096,35 @@ function readRoomFromUrl() {
   return null;
 }
 
+// On localhost a cached service worker would serve stale code (and mask every
+// update) — so in dev we unregister any SW and wipe its caches, reloading once
+// to pick up fresh files. In production we register a network-first SW so
+// deployed updates always reach players while offline play still works.
+function manageServiceWorker() {
+  if (!("serviceWorker" in navigator)) return;
+  const h = location.hostname;
+  const isLocal = h === "localhost" || h === "127.0.0.1" || h === "";
+  if (isLocal) {
+    navigator.serviceWorker
+      .getRegistrations()
+      .then((regs) => {
+        const had = regs.length > 0;
+        return Promise.all(regs.map((r) => r.unregister()))
+          .then(() =>
+            window.caches
+              ? caches.keys().then((ks) => Promise.all(ks.map((k) => caches.delete(k))))
+              : null
+          )
+          .then(() => {
+            if (had) location.reload();
+          });
+      })
+      .catch(() => {});
+  } else if (location.protocol === "https:") {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  }
+}
+
 function boot() {
   Sound.init();
   fillCategories();
@@ -1103,10 +1132,7 @@ function boot() {
   const code = readRoomFromUrl();
   if (code) startOnline("join", code);
   else show("home");
-
-  if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    navigator.serviceWorker.register("sw.js").catch(() => {});
-  }
+  manageServiceWorker();
 }
 
 if (document.readyState === "loading")

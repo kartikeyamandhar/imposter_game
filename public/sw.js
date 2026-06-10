@@ -3,7 +3,7 @@
  * network. It never caches game data — there is none to cache; multiplayer
  * traffic is WebSocket (not handled here) and nothing is persisted. */
 
-const CACHE = "suss-v1";
+const CACHE = "suss-v2";
 const SHELL = [
   "./",
   "index.html",
@@ -39,18 +39,21 @@ self.addEventListener("fetch", (event) => {
   // Only handle same-origin GET; let everything else (incl. WS upgrades) pass.
   if (req.method !== "GET" || new URL(req.url).origin !== self.location.origin)
     return;
+  // Network-first: always serve fresh code when online so deployed updates land
+  // immediately; fall back to cache only when the network is unavailable.
   event.respondWith(
-    caches.match(req, { ignoreSearch: true }).then((cached) => {
-      if (cached) return cached;
-      return fetch(req)
-        .then((res) => {
-          // runtime-cache successful navigations/assets
+    fetch(req)
+      .then((res) => {
+        if (res && res.ok) {
           const copy = res.clone();
-          if (res.ok)
-            caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
-          return res;
-        })
-        .catch(() => caches.match("index.html"));
-    })
+          caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
+        }
+        return res;
+      })
+      .catch(() =>
+        caches
+          .match(req, { ignoreSearch: true })
+          .then((cached) => cached || caches.match("index.html"))
+      )
   );
 });
