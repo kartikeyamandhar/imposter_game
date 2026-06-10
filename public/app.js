@@ -13,7 +13,10 @@ const PROD_PARTYKIT_HOST = "suss.USERNAME.partykit.dev";
 
 function partykitHost() {
   const h = location.hostname;
-  if (h === "localhost" || h === "127.0.0.1" || h === "") return "127.0.0.1:1999";
+  // In dev the static site and the Partykit server share one origin, so connect
+  // back to whatever host:port the page was served from (works on any port).
+  if (h === "localhost" || h === "127.0.0.1" || h === "")
+    return location.host || "127.0.0.1:1999";
   return PROD_PARTYKIT_HOST;
 }
 function wsProtocol() {
