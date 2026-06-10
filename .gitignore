@@ -1,0 +1,26 @@
+# dependencies
+node_modules/
+
+# partykit / wrangler build + cache
+.partykit/
+.wrangler/
+dist/
+build/
+
+# env & secrets (never commit)
+.env
+.env.*
+*.local
+
+# os / editor
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+.idea/
+.vscode/
+
+# python scratch (unused, pre-existing empty file)
+main.py
+__pycache__/
+*.pyc

@@ -1,0 +1,15 @@
+{
+  "name": "suss",
+  "version": "1.0.0",
+  "private": true,
+  "license": "MIT",
+  "description": "Suss — a free multiplayer word game. No accounts, no database, no data retention.",
+  "scripts": {
+    "dev": "partykit dev",
+    "deploy": "partykit deploy"
+  },
+  "devDependencies": {
+    "partykit": "^0.0.114",
+    "typescript": "^5.5.4"
+  }
+}

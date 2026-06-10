@@ -1,0 +1,4 @@
+# Cloudflare Pages SPA fallback.
+# Real files (styles.css, app.js, terms.html, icons, …) are served directly;
+# unknown paths like /ABCD (a room-code link) fall back to the single-page app.
+/*    /index.html    200

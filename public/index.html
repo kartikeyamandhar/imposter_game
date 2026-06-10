@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1"
+    />
+    <title>Suss</title>
+
+    <meta
+      name="description"
+      content="Suss — a free multiplayer word game. No download, no accounts. Create a room, share the code, play instantly."
+    />
+    <meta property="og:title" content="Suss" />
+    <meta
+      property="og:description"
+      content="Free multiplayer word game. One secret word. One imposter. No app download needed."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://suss.pages.dev" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Suss" />
+    <meta
+      name="twitter:description"
+      content="Free multiplayer word game. One secret word. One imposter. No app download needed."
+    />
+    <meta name="theme-color" content="#11151C" />
+
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2064%2064'%3E%3Ctext%20x='32'%20y='47'%20font-family='ui-monospace,SFMono-Regular,Menlo,monospace'%20font-size='46'%20font-weight='700'%20fill='%23D9A441'%20text-anchor='middle'%3ES%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="apple-touch-icon" href="icon-180.png" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main id="app">
+      <!-- ============================================================ HOME -->
+      <section class="screen active" data-screen="home">
+        <div class="stack center">
+          <header class="brand">
+            <h1 class="wordmark">SUSS</h1>
+            <p class="tagline">One word. One imposter. Find them.</p>
+          </header>
+
+          <div class="stack" style="width: 100%; gap: 14px">
+            <button class="btn btn-primary" id="btn-create">Create Room</button>
+
+            <div class="join-row">
+              <input
+                id="join-code"
+                class="input code-input"
+                inputmode="text"
+                autocapitalize="characters"
+                autocomplete="off"
+                spellcheck="false"
+                maxlength="4"
+                placeholder="CODE"
+                aria-label="Room code"
+              />
+              <button class="btn" id="btn-join">Join</button>
+            </div>
+
+            <button class="btn btn-ghost" id="btn-offline">Play Offline</button>
+          </div>
+
+          <p class="msg error" id="home-error" role="alert"></p>
+        </div>
+
+        <footer class="site-footer">
+          <span>Suss</span>
+          <span class="dot">·</span>
+          <a href="terms.html">Terms</a>
+          <span class="dot">·</span>
+          <a href="privacy.html">Privacy</a>
+        </footer>
+      </section>
+
+      <!-- ============================================================ NAME -->
+      <section class="screen" data-screen="name">
+        <div class="stack center">
+          <button class="back-link" data-back="home">‹ Back</button>
+          <p class="eyebrow" id="name-context">Joining room</p>
+          <h2 class="screen-title">Your name</h2>
+          <input
+            id="name-input"
+            class="input"
+            maxlength="20"
+            autocomplete="off"
+            spellcheck="false"
+            placeholder="e.g. Alex"
+            aria-label="Display name"
+          />
+          <button class="btn btn-primary" id="btn-name-go">Continue</button>
+          <p class="msg error" id="name-error" role="alert"></p>
+        </div>
+      </section>
+
+      <!-- =========================================================== LOBBY -->
+      <section class="screen" data-screen="lobby">
+        <div class="stack">
+          <div class="lobby-head">
+            <p class="eyebrow">Room code · share to invite</p>
+            <p class="room-code" id="lobby-code">----</p>
+          </div>
+
+          <div class="row gap">
+            <button class="btn btn-small" id="btn-copy-link">Copy link</button>
+            <button class="btn btn-small btn-ghost" id="btn-share">Share</button>
+          </div>
+
+          <div class="panel">
+            <p class="eyebrow">Players (<span id="player-count">0</span>)</p>
+            <ul class="player-list" id="player-list"></ul>
+          </div>
+
+          <div class="panel" id="settings-panel">
+            <p class="eyebrow">Settings</p>
+
+            <div class="setting" data-setting="mode">
+              <label>Mode</label>
+              <div class="seg" role="group" aria-label="Mode">
+                <button class="seg-btn" data-val="classic">Classic</button>
+                <button class="seg-btn" data-val="decoy">Decoy Word</button>
+              </div>
+            </div>
+
+            <div class="setting" data-setting="imposterCount">
+              <label>Imposters</label>
+              <div class="seg" id="imposter-seg" role="group">
+                <button class="seg-btn" data-val="1">1</button>
+                <button class="seg-btn" data-val="2">2</button>
+                <button class="seg-btn" data-val="3">3</button>
+              </div>
+            </div>
+
+            <div class="setting" data-setting="category">
+              <label>Category</label>
+              <select class="input select" id="category-select"></select>
+            </div>
+
+            <div class="setting" data-setting="discussionTimer">
+              <label>Discussion</label>
+              <div class="seg" role="group">
+                <button class="seg-btn" data-val="30">30s</button>
+                <button class="seg-btn" data-val="60">60s</button>
+                <button class="seg-btn" data-val="90">90s</button>
+                <button class="seg-btn" data-val="0">∞</button>
+              </div>
+            </div>
+
+            <div class="setting" data-setting="rounds">
+              <label>Rounds</label>
+              <div class="seg" role="group">
+                <button class="seg-btn" data-val="1">1</button>
+                <button class="seg-btn" data-val="3">3</button>
+                <button class="seg-btn" data-val="5">5</button>
+                <button class="seg-btn" data-val="7">7</button>
+                <button class="seg-btn" data-val="10">10</button>
+              </div>
+            </div>
+
+            <div class="setting" data-setting="imposterHint" id="hint-setting">
+              <label>Imposter hint</label>
+              <div class="seg" role="group">
+                <button class="seg-btn" data-val="off">Off</button>
+                <button class="seg-btn" data-val="on">On</button>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn btn-primary" id="btn-start" disabled>
+            Start Game
+          </button>
+          <p class="msg" id="lobby-msg" role="status"></p>
+
+          <div class="row gap">
+            <button class="btn btn-small btn-ghost" id="btn-sound">
+              Sound: Off
+            </button>
+            <button class="btn btn-small btn-danger-ghost" id="btn-leave">
+              Leave
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================== REVEAL -->
+      <section class="screen" data-screen="reveal">
+        <div class="stack center">
+          <p class="eyebrow">
+            Round <span id="reveal-round">1</span> · Role reveal
+          </p>
+          <button class="reveal-tap" id="btn-reveal-card">
+            Tap to see your secret
+          </button>
+          <div class="ready-board">
+            <p class="eyebrow">Ready</p>
+            <ul class="player-list compact" id="reveal-ready-list"></ul>
+          </div>
+        </div>
+
+        <div class="overlay" id="reveal-overlay" hidden>
+          <div class="reveal-card" id="reveal-card">
+            <p class="eyebrow" id="reveal-label">Your word</p>
+            <p class="reveal-word" id="reveal-word"></p>
+            <p class="reveal-sub" id="reveal-sub"></p>
+            <button class="btn btn-primary" id="btn-ready" hidden>Ready</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================================================== CLUES -->
+      <section class="screen" data-screen="clues">
+        <div class="stack">
+          <p class="eyebrow">Clue phase — give a one-word clue aloud</p>
+          <p class="msg" id="clue-hint"></p>
+          <ul class="turn-list" id="clue-list"></ul>
+          <button class="btn btn-primary" id="btn-clue-done" hidden>
+            Done — next player
+          </button>
+          <p class="msg" id="clue-wait" role="status"></p>
+        </div>
+      </section>
+
+      <!-- ====================================================== DISCUSSION -->
+      <section class="screen" data-screen="discussion">
+        <div class="stack center">
+          <p class="eyebrow">Discussion</p>
+          <div class="timer-ring" id="disc-timer">--</div>
+          <p class="msg">Talk it out. Who is bluffing?</p>
+          <button class="btn btn-primary" id="btn-end-discussion" hidden>
+            End discussion
+          </button>
+        </div>
+      </section>
+
+      <!-- ========================================================== VOTING -->
+      <section class="screen" data-screen="voting">
+        <div class="stack">
+          <div class="row between">
+            <p class="eyebrow">Vote out the imposter</p>
+            <span class="timer-pill" id="vote-timer">30</span>
+          </div>
+          <ul class="vote-list" id="vote-list"></ul>
+          <p class="msg" id="vote-status" role="status"></p>
+        </div>
+      </section>
+
+      <!-- ========================================================== RESULT -->
+      <section class="screen" data-screen="result">
+        <div class="stack">
+          <div class="result-head">
+            <p class="eyebrow" id="result-verdict">Result</p>
+            <p class="eyebrow">The word was</p>
+            <p class="reveal-word small" id="result-word"></p>
+            <p class="reveal-sub" id="result-decoy"></p>
+          </div>
+
+          <div class="panel">
+            <p class="eyebrow">Imposter(s)</p>
+            <p id="result-imposters" class="imposters"></p>
+            <p class="msg" id="result-detail"></p>
+          </div>
+
+          <div class="panel">
+            <p class="eyebrow">Votes</p>
+            <ul class="vote-breakdown" id="result-votes"></ul>
+          </div>
+
+          <div class="panel">
+            <p class="eyebrow">Scoreboard</p>
+            <ul class="scoreboard" id="scoreboard"></ul>
+          </div>
+
+          <button class="btn btn-primary" id="btn-next-round" hidden>
+            Next round
+          </button>
+          <p class="msg" id="result-wait" role="status"></p>
+          <button class="btn btn-ghost btn-small" id="btn-result-leave">
+            Leave game
+          </button>
+        </div>
+
+        <!-- Last stand overlay (only the caught imposter sees this) -->
+        <div class="overlay" id="laststand-overlay" hidden>
+          <div class="reveal-card">
+            <p class="eyebrow">You were the imposter</p>
+            <p class="reveal-sub">Last stand — guess the real word</p>
+            <span class="timer-pill big" id="laststand-timer">15</span>
+            <input
+              id="laststand-input"
+              class="input"
+              maxlength="30"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="The word…"
+            />
+            <button class="btn btn-primary" id="btn-laststand-go">Guess</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================== OFFLINE SETUP -->
+      <section class="screen" data-screen="offline-setup">
+        <div class="stack">
+          <button class="back-link" data-back="home">‹ Back</button>
+          <h2 class="screen-title">Pass &amp; Play</h2>
+          <p class="msg">One phone, passed around. No internet needed.</p>
+
+          <div class="panel">
+            <div class="setting">
+              <label>Players: <span id="off-player-count">5</span></label>
+              <input
+                type="range"
+                id="off-players"
+                min="3"
+                max="20"
+                value="5"
+                class="slider"
+              />
+            </div>
+
+            <div class="setting">
+              <label>Imposters</label>
+              <div class="seg" id="off-imposter-seg" role="group">
+                <button class="seg-btn active" data-val="1">1</button>
+                <button class="seg-btn" data-val="2">2</button>
+                <button class="seg-btn" data-val="3">3</button>
+              </div>
+            </div>
+
+            <div class="setting">
+              <label>Mode</label>
+              <div class="seg" id="off-mode-seg" role="group">
+                <button class="seg-btn active" data-val="classic">Classic</button>
+                <button class="seg-btn" data-val="decoy">Decoy</button>
+              </div>
+            </div>
+
+            <div class="setting">
+              <label>Category</label>
+              <select class="input select" id="off-category"></select>
+            </div>
+          </div>
+
+          <button class="btn btn-primary" id="btn-offline-start">
+            Deal roles
+          </button>
+        </div>
+      </section>
+
+      <!-- ================================================== OFFLINE REVEAL -->
+      <section class="screen" data-screen="offline-reveal">
+        <div class="stack center">
+          <p class="eyebrow">Pass &amp; Play</p>
+          <h2 class="screen-title" id="off-pass-name">Pass to Player 1</h2>
+          <p class="msg">Hand the phone over, then tap.</p>
+          <button class="reveal-tap" id="off-reveal-tap">
+            I'm <span id="off-current-name">Player 1</span> — reveal
+          </button>
+        </div>
+
+        <div class="overlay" id="off-overlay" hidden>
+          <div class="reveal-card">
+            <p class="eyebrow" id="off-reveal-label">Your word</p>
+            <p class="reveal-word" id="off-reveal-word"></p>
+            <p class="reveal-sub" id="off-reveal-sub"></p>
+            <button class="btn btn-primary" id="off-reveal-next">
+              Got it — hide
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================== OFFLINE RESULT -->
+      <section class="screen" data-screen="offline-result">
+        <div class="stack">
+          <h2 class="screen-title">Everyone has their role</h2>
+          <p class="msg">
+            Give clues aloud, discuss, and vote in person. Tap below when you're
+            ready to reveal who the imposter was.
+          </p>
+          <button class="btn btn-primary" id="off-show-answer">
+            Reveal the answer
+          </button>
+          <div class="panel" id="off-answer" hidden>
+            <p class="eyebrow">The word</p>
+            <p class="reveal-word small" id="off-answer-word"></p>
+            <p class="reveal-sub" id="off-answer-decoy"></p>
+            <p class="eyebrow">Imposter(s)</p>
+            <p class="imposters" id="off-answer-imposters"></p>
+          </div>
+          <button class="btn" id="off-replay">Play again</button>
+          <button class="btn btn-ghost btn-small" data-back="home">
+            Back to home
+          </button>
+        </div>
+      </section>
+
+      <!-- ====================================================== CONNECTION -->
+      <div class="conn-banner" id="conn-banner" hidden>Reconnecting…</div>
+      <div class="toast" id="toast" hidden></div>
+    </main>
+
+    <script src="words.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
