@@ -128,30 +128,22 @@ function updateSoundLabel() {
 }
 
 /* ============================================================ TYPEWRITER = */
+// Reveal a word. The full word is placed in the DOM immediately (so it can
+// never be caught blank / mid-animation), then a quick fade+glow flourish plays.
+// Earlier this typed character-by-character at ~100ms/char, which left long
+// words looking blank for over a second — a pass-and-play reveal must be instant.
 function typeWord(el, word, opts) {
   opts = opts || {};
-  el.classList.remove("pulse");
-  if (REDUCED_MOTION) {
-    setText(el, word);
+  const w = word == null ? "" : String(word);
+  el.classList.remove("pulse", "caret", "revealin");
+  setText(el, w);
+  if (!REDUCED_MOTION) {
+    void el.offsetWidth; // restart the animation on each reveal
+    el.classList.add("revealin");
+  } else {
     el.classList.add("pulse");
-    if (opts.onDone) opts.onDone();
-    return;
   }
-  el.textContent = "";
-  el.classList.add("caret");
-  let i = 0;
-  const chars = [...word];
-  const step = () => {
-    if (i < chars.length) {
-      el.textContent += chars[i++];
-      setTimeout(step, 95);
-    } else {
-      el.classList.remove("caret");
-      el.classList.add("pulse");
-      if (opts.onDone) opts.onDone();
-    }
-  };
-  setTimeout(step, 180);
+  if (opts.onDone) opts.onDone();
 }
 
 /* ============================================================ WORD PICK === */
@@ -524,7 +516,8 @@ function openReveal() {
   Sound.reveal();
 
   typeWord(wordEl, display);
-  const wait = REDUCED_MOTION ? 600 : Math.max(4000, display.length * 95 + 600);
+  // brief dwell so players can read/memorize before the Ready button appears
+  const wait = REDUCED_MOTION ? 500 : 2200;
   setTimeout(() => {
     $("btn-ready").hidden = false;
   }, wait);

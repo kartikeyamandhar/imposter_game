@@ -491,6 +491,26 @@ body {
 .reveal-word.pulse {
   animation: pulse 0.5s ease;
 }
+.reveal-word.revealin {
+  animation: revealin 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes revealin {
+  0% {
+    opacity: 0.35;
+    transform: scale(0.96);
+    text-shadow: 0 0 0 transparent;
+  }
+  55% {
+    opacity: 1;
+    transform: scale(1);
+    text-shadow: 0 0 26px rgba(217, 164, 65, 0.6);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    text-shadow: 0 0 0 transparent;
+  }
+}
 .reveal-word.imposter {
   color: var(--red);
 }
