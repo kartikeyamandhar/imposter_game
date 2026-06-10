@@ -1074,7 +1074,7 @@ function wire() {
   $("btn-offline-start").addEventListener("click", offlineDeal);
   $("off-reveal-tap").addEventListener("click", offlineReveal);
   $("off-reveal-next").addEventListener("click", offlineNext);
-  $("off-show-answer").addEventListener("click", offlineShowAnswerScreen);
+  $("off-show-answer").addEventListener("click", offlineRevealAnswer);
   $("off-replay").addEventListener("click", offlineDeal);
 
   // resume audio on first gesture (so sound works when enabled)

@@ -779,12 +779,18 @@ export default class SussServer implements Party.Server {
     if (!target || target === this.hostId || !this.players.has(target)) return;
     const name = this.players.get(target)!.name;
     this.removePlayer(target, true);
-    this.room.getConnection(target)?.send(
-      JSON.stringify({ type: "kicked" })
-    );
-    this.room.getConnection(target)?.close();
+    // Notify the kicked player, THEN tear down their socket. Broadcasts must
+    // happen before we close the connection — room.broadcast() iterates live
+    // connections, and sending to an already-closed socket throws.
+    const conn = this.room.getConnection(target);
+    try {
+      conn?.send(JSON.stringify({ type: "kicked" }));
+    } catch {}
     this.broadcast({ type: "player_left", id: target, name, kicked: true });
     this.broadcastLobby();
+    try {
+      conn?.close();
+    } catch {}
     this.checkGameIntegrity();
   }
 
