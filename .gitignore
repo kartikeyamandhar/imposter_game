@@ -20,6 +20,9 @@ npm-debug.log*
 .idea/
 .vscode/
 
+# internal build spec, kept local only
+CLAUDE.md
+
 # python scratch (unused, pre-existing empty file)
 main.py
 __pycache__/
