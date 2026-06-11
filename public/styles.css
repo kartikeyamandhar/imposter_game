@@ -415,6 +415,10 @@ body {
   border-color: var(--brass);
   color: #1a1304;
 }
+.seg-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
 .settings-readonly .seg-btn,
 .settings-readonly .select,
 .settings-readonly .slider {
@@ -490,7 +494,10 @@ body {
   margin: 0;
   color: var(--bone);
   min-height: 1.2em;
-  word-break: break-word;
+  /* never split a word mid-letters; long single words are shrunk to fit by
+     fitWord() in app.js, multi-word entries wrap at the space */
+  word-break: normal;
+  overflow-wrap: normal;
 }
 .reveal-word.small {
   font-size: clamp(26px, 9vw, 38px);

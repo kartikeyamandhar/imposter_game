@@ -10,7 +10,7 @@
 
     <meta
       name="description"
-      content="Suss — a free multiplayer word game. No download, no accounts. Create a room, share the code, play instantly."
+      content="Suss, a free multiplayer word game. No download, no accounts. Create a room, share the code, play instantly."
     />
     <meta property="og:title" content="Suss" />
     <meta
@@ -34,7 +34,7 @@
     />
     <link rel="manifest" href="manifest.json" />
     <link rel="apple-touch-icon" href="icon-180.png" />
-    <link rel="stylesheet" href="styles.css?v=5" />
+    <link rel="stylesheet" href="styles.css?v=6" />
   </head>
   <body>
     <main id="app">
@@ -218,11 +218,11 @@
       <!-- =========================================================== CLUES -->
       <section class="screen" data-screen="clues">
         <div class="stack">
-          <p class="eyebrow">Clue phase — give a one-word clue aloud</p>
+          <p class="eyebrow">Clue phase: give a one-word clue aloud</p>
           <p class="msg" id="clue-hint"></p>
           <ul class="turn-list" id="clue-list"></ul>
           <button class="btn btn-primary" id="btn-clue-done" hidden>
-            Done — next player
+            Done, next player
           </button>
           <p class="msg" id="clue-wait" role="status"></p>
         </div>
@@ -291,7 +291,7 @@
         <div class="overlay" id="laststand-overlay" hidden>
           <div class="reveal-card">
             <p class="eyebrow">You were the imposter</p>
-            <p class="reveal-sub">Last stand — guess the real word</p>
+            <p class="reveal-sub">Last stand: guess the real word</p>
             <span class="timer-pill big" id="laststand-timer">15</span>
             <input
               id="laststand-input"
@@ -333,6 +333,7 @@
                 <button class="seg-btn" data-val="2">2</button>
                 <button class="seg-btn" data-val="3">3</button>
               </div>
+              <p class="msg" id="off-imposter-note" role="status"></p>
             </div>
 
             <div class="setting">
@@ -362,7 +363,7 @@
           <h2 class="screen-title" id="off-pass-name">Pass to Player 1</h2>
           <p class="msg">Hand the phone over, then tap.</p>
           <button class="reveal-tap" id="off-reveal-tap">
-            I'm <span id="off-current-name">Player 1</span> — reveal
+            I'm <span id="off-current-name">Player 1</span>, tap to reveal
           </button>
         </div>
 
@@ -372,7 +373,7 @@
             <p class="reveal-word" id="off-reveal-word"></p>
             <p class="reveal-sub" id="off-reveal-sub"></p>
             <button class="btn btn-primary" id="off-reveal-next">
-              Got it — hide
+              Got it, hide
             </button>
           </div>
         </div>
@@ -408,7 +409,7 @@
       <div class="toast" id="toast" hidden></div>
     </main>
 
-    <script src="words.js?v=5"></script>
-    <script src="app.js?v=5"></script>
+    <script src="words.js?v=6"></script>
+    <script src="app.js?v=6"></script>
   </body>
 </html>

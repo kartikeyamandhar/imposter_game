@@ -621,6 +621,10 @@ export default class SussServer implements Party.Server {
 
   private startLastStand(imposterId: string, breakdown: any) {
     this.clearTimers();
+    // Leave VOTING immediately: votes are already tallied, and a vote arriving
+    // during the last stand must not re-trigger resolveVotes (which would
+    // start a second last stand or double-broadcast the result and scores).
+    this.phase = "RESULT";
     this.lastStandImposter = imposterId;
     this.pendingBreakdown = breakdown;
     const imp = this.players.get(imposterId);
@@ -861,6 +865,10 @@ export default class SussServer implements Party.Server {
     const wasHost = id === this.hostId;
     this.players.delete(id);
     this.imposterIds.delete(id);
+    // Removing an entry before the current position shifts the array left;
+    // keep turnIndex pointing at the same (current) player.
+    const ti = this.turnOrder.indexOf(id);
+    if (ti !== -1 && ti < this.turnIndex) this.turnIndex--;
     this.turnOrder = this.turnOrder.filter((t) => t !== id);
     if (wasHost) {
       const next = [...this.players.values()]

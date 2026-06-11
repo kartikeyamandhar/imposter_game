@@ -9,9 +9,9 @@
 /* ============================================================ CONFIG ===== */
 // After `npx partykit deploy`, set this to your deployed Partykit host
 // (shown in the deploy output, e.g. "suss.yourname.partykit.dev").
-// Shown as "b5" in the home footer and logged at boot, so it's always possible
+// Shown as "b6" in the home footer and logged at boot, so it's always possible
 // to tell at a glance which client build a browser is actually running.
-const BUILD = 5;
+const BUILD = 6;
 
 const PROD_PARTYKIT_HOST = "suss.USERNAME.partykit.dev";
 
@@ -136,11 +136,26 @@ function updateSoundLabel() {
 // never be caught blank / mid-animation), then a quick fade+glow flourish plays.
 // Earlier this typed character-by-character at ~100ms/char, which left long
 // words looking blank for over a second — a pass-and-play reveal must be instant.
+// Shrink the font until the word fits its container on one line. Long single
+// words (e.g. ELECTRICIAN) can't wrap because .reveal-word forbids mid-word
+// breaks, so without this they overflow the card.
+function fitWord(el) {
+  el.style.fontSize = "";
+  if (!el.clientWidth) return; // not laid out yet
+  let size = parseFloat(getComputedStyle(el).fontSize);
+  let guard = 24;
+  while (el.scrollWidth > el.clientWidth && size > 16 && guard-- > 0) {
+    size -= 2;
+    el.style.fontSize = size + "px";
+  }
+}
+
 function typeWord(el, word, opts) {
   opts = opts || {};
   const w = word == null ? "" : String(word);
   el.classList.remove("pulse", "caret", "revealin");
   setText(el, w);
+  fitWord(el);
   if (!REDUCED_MOTION) {
     void el.offsetWidth; // restart the animation on each reveal
     el.classList.add("revealin");
@@ -343,7 +358,7 @@ function handleMessage(msg) {
     case "imposter_guess_result":
       state.lastStandActive = false;
       $("laststand-overlay").hidden = true;
-      toast(msg.correct ? "Correct — you survive!" : "Wrong. Civilians win.");
+      toast(msg.correct ? "Correct! You survive." : "Wrong. Civilians win.");
       break;
     case "player_left":
       if (!msg.kicked) toast(`${msg.name} left`);
@@ -568,7 +583,7 @@ function onPhaseChange(msg) {
 function renderClues() {
   const hint = $("clue-hint");
   if (state.roundMode === "classic" && state.role === "imposter" && state.categoryHint)
-    setText(hint, "Hint — category: " + state.categoryHint);
+    setText(hint, "Category hint: " + state.categoryHint);
   else setText(hint, "");
 
   const ul = $("clue-list");
@@ -599,7 +614,7 @@ function renderClues() {
   btn.hidden = !myTurn;
   setText(
     $("clue-wait"),
-    myTurn ? "Your turn — say your clue aloud." : "Clues are given aloud, in turn."
+    myTurn ? "Your turn: say your clue aloud." : "Clues are given aloud, in turn."
   );
 }
 
@@ -708,13 +723,13 @@ function onResult(msg) {
       : ""
   );
 
-  setText($("result-imposters"), (msg.imposters || []).join(" · ") || "—");
+  setText($("result-imposters"), (msg.imposters || []).join(" · ") || "None");
 
   let detail = "";
   if (msg.reason === "imposters_left") detail = "The imposter(s) left the game.";
   else if (msg.eliminatedName)
     detail = `${msg.eliminatedName} was voted out.`;
-  else detail = "No majority — nobody was voted out.";
+  else detail = "No majority. Nobody was voted out.";
   if (msg.lastStandGuessed === true) detail += " They guessed the word and survived.";
   else if (msg.lastStandGuessed === false) detail += " Last-stand guess failed.";
   setText($("result-detail"), detail);
@@ -873,6 +888,30 @@ function offLock() {
 function offLocked() {
   return Date.now() < offTapLockUntil;
 }
+
+// Imposter count is capped at 1 per 3 players (same rule as online). Disable
+// the counts the current player count can't support and snap the selection,
+// instead of silently clamping at deal time and looking broken.
+function updateOffImposterUI() {
+  const players = Number($("off-players").value);
+  const maxImp = Math.min(3, Math.max(1, Math.floor(players / 3)));
+  let active = Number(
+    document.querySelector("#off-imposter-seg .seg-btn.active").dataset.val
+  );
+  if (active > maxImp) active = maxImp;
+  document.querySelectorAll("#off-imposter-seg .seg-btn").forEach((b) => {
+    const v = Number(b.dataset.val);
+    b.disabled = v > maxImp;
+    b.title = b.disabled ? `Needs ${v * 3}+ players` : "";
+    b.classList.toggle("active", v === active);
+  });
+  setText(
+    $("off-imposter-note"),
+    maxImp === 3
+      ? ""
+      : `Up to ${maxImp} imposter${maxImp > 1 ? "s" : ""} for ${players} players (1 per 3)`
+  );
+}
 function offlineShowPass() {
   const r = off.roles[off.index];
   setText($("off-pass-name"), `Pass to ${r.name}`);
@@ -918,7 +957,7 @@ function offlineShowAnswerScreen() {
   show("offline-result");
 }
 function offlineRevealAnswer() {
-  if (offLocked()) return; // ghost click from the final "Got it — hide"
+  if (offLocked()) return; // ghost click from the final "Got it, hide"
   setText($("off-answer-word"), off.word);
   setText(
     $("off-answer-decoy"),
@@ -1080,9 +1119,10 @@ function wire() {
   });
 
   // Offline
-  $("off-players").addEventListener("input", (e) =>
-    setText($("off-player-count"), e.target.value)
-  );
+  $("off-players").addEventListener("input", (e) => {
+    setText($("off-player-count"), e.target.value);
+    updateOffImposterUI();
+  });
   document.querySelectorAll("#off-imposter-seg .seg-btn").forEach((b) =>
     b.addEventListener("click", () => {
       document
@@ -1159,6 +1199,7 @@ function boot() {
   Sound.init();
   fillCategories();
   wire();
+  updateOffImposterUI();
   const code = readRoomFromUrl();
   if (code) startOnline("join", code);
   else show("home");
