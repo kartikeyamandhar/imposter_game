@@ -9,6 +9,10 @@
 /* ============================================================ CONFIG ===== */
 // After `npx partykit deploy`, set this to your deployed Partykit host
 // (shown in the deploy output, e.g. "suss.yourname.partykit.dev").
+// Shown as "b5" in the home footer and logged at boot, so it's always possible
+// to tell at a glance which client build a browser is actually running.
+const BUILD = 5;
+
 const PROD_PARTYKIT_HOST = "suss.USERNAME.partykit.dev";
 
 function partykitHost() {
@@ -805,6 +809,7 @@ const off = {
 };
 
 function offlineDeal() {
+  if (offLocked()) return;
   off.players = Number($("off-players").value);
   off.imposterCount = Number(
     document.querySelector("#off-imposter-seg .seg-btn.active").dataset.val
@@ -850,9 +855,24 @@ function offlineDeal() {
   off.index = 0;
   offlineShowPass();
   show("offline-reveal");
+  offLock();
 }
 
-let offRevealLockUntil = 0;
+// One physical tap can fire a second synthesized "ghost" click ~100-300ms
+// later (and impatient players double-click). The offline flow's tap targets
+// (Deal roles / "I'm Player X — reveal" / "Got it — hide" / "Reveal the
+// answer") all occupy the same screen spot, so that stray second click lands
+// on whichever button just replaced the one tapped and cascades through the
+// whole flow (deal → auto-reveal → auto-hide → next player…). Every offline
+// transition arms this shared lock, and every offline tap target ignores
+// clicks while it is armed.
+let offTapLockUntil = 0;
+function offLock() {
+  offTapLockUntil = Date.now() + 600;
+}
+function offLocked() {
+  return Date.now() < offTapLockUntil;
+}
 function offlineShowPass() {
   const r = off.roles[off.index];
   setText($("off-pass-name"), `Pass to ${r.name}`);
@@ -860,6 +880,7 @@ function offlineShowPass() {
   $("off-overlay").hidden = true;
 }
 function offlineReveal() {
+  if (offLocked()) return; // ghost click from the tap that opened this screen
   const r = off.roles[off.index];
   const wordEl = $("off-reveal-word");
   wordEl.classList.remove("imposter");
@@ -878,15 +899,13 @@ function offlineReveal() {
     setText($("off-reveal-sub"), "");
   }
   $("off-overlay").hidden = false;
-  // The reveal button and the overlay's "Got it" button overlap on screen, so a
-  // tap's synthesized ghost-click (~300ms later) would land on "Got it" and
-  // instantly dismiss the word. Ignore dismissals for a moment after opening.
-  offRevealLockUntil = Date.now() + 500;
+  offLock();
   Sound.reveal();
   typeWord(wordEl, display);
 }
 function offlineNext() {
-  if (Date.now() < offRevealLockUntil) return; // swallow ghost-click dismiss
+  if (offLocked()) return;
+  offLock();
   off.index++;
   if (off.index >= off.roles.length) {
     offlineShowAnswerScreen();
@@ -899,6 +918,7 @@ function offlineShowAnswerScreen() {
   show("offline-result");
 }
 function offlineRevealAnswer() {
+  if (offLocked()) return; // ghost click from the final "Got it — hide"
   setText($("off-answer-word"), off.word);
   setText(
     $("off-answer-decoy"),
@@ -1036,9 +1056,15 @@ function wire() {
   $("btn-ready").addEventListener("click", confirmReady);
 
   // Clues / discussion
-  $("btn-clue-done").addEventListener("click", () =>
-    send({ type: "clue_done" })
-  );
+  $("btn-clue-done").addEventListener("click", () => {
+    // brief disable so a double-click can't advance two turns (the server
+    // accepts a host's clue_done even when it isn't the host's turn)
+    const b = $("btn-clue-done");
+    if (b.disabled) return;
+    b.disabled = true;
+    setTimeout(() => (b.disabled = false), 600);
+    send({ type: "clue_done" });
+  });
   $("btn-end-discussion").addEventListener("click", () =>
     send({ type: "end_discussion" })
   );
@@ -1128,6 +1154,8 @@ function manageServiceWorker() {
 }
 
 function boot() {
+  console.log("Suss client build", BUILD);
+  setText($("build-tag"), "b" + BUILD);
   Sound.init();
   fillCategories();
   wire();

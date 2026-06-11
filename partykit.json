@@ -2,6 +2,10 @@
   "$schema": "https://www.partykit.io/schema.json",
   "name": "suss",
   "main": "src/server.ts",
-  "serve": "public",
+  "serve": {
+    "path": "public",
+    "browserTTL": 0,
+    "serveSinglePageApp": true
+  },
   "compatibilityDate": "2025-01-01"
 }
